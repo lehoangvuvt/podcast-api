@@ -18,7 +18,7 @@ type application struct {
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	loadEnvFile()
+	loadConfig()
 
 	db, err := connectDB()
 	if err != nil {
