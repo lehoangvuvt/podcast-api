@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"vulh/soundcommunity/internal/models"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) createGenreHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,4 +32,16 @@ func (app *application) getAllGenres(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res.status(http.StatusOK).json(envelop{"genres": genres})
+}
+
+func (app *application) getGenreDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	params := httprouter.ParamsFromContext(r.Context())
+	uuid := params.ByName("uuid")
+	genreDetails, err := app.models.GenreModel.GetGenreDetails(uuid)
+	if err != nil {
+		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
+		return
+	}
+	res.status(http.StatusOK).json(envelop{"genre_details": genreDetails})
 }

@@ -20,6 +20,7 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodPost, "/genres", app.createGenreHandler)
 	router.HandlerFunc(http.MethodGet, "/genres", app.getAllGenres)
+	router.HandlerFunc(http.MethodGet, "/genres/:uuid", app.getGenreDetailsHandler)
 
 	router.HandlerFunc(http.MethodGet, "/podcasts", app.getAllPodcastsHandler)
 	router.HandlerFunc(http.MethodGet, "/podcasts/:uuid", app.getPodcastDetailsHandler)
