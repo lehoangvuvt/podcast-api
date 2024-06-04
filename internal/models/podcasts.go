@@ -148,6 +148,7 @@ func (m *PodcastModel) SearchPodcasts(queryConfig *queryHelpers.QueryConfig) ([]
 		FromTable(queryConfig.FromTable).
 		WhereColumn(queryConfig.WhereColumnName).
 		Search(queryConfig.Operator, queryConfig.SearchValue).
+		OrderBy(queryConfig.OrderByColumnName, queryConfig.Direction).
 		Skip(queryConfig.Skip).
 		Limit(queryConfig.Limit).
 		GetQuery()

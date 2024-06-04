@@ -70,6 +70,12 @@ func (builder *QueryBuilder) Search(operator ColumnOperatorType, searchValue str
 	return builder
 }
 
+func (builder *QueryBuilder) OrderBy(columnName string, direction QueryOrderDirectionType) *QueryBuilder {
+	builder.query.OrderByColumnName = columnName
+	builder.query.Direction = direction
+	return builder
+}
+
 func (builder *QueryBuilder) Contains(searchValue string) *QueryBuilder {
 	builder.query.Operator = ColumnOperator.CONTAINS
 	builder.query.SearchValue = searchValue
