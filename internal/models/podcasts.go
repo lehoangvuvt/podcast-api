@@ -114,3 +114,28 @@ func (m *PodcastModel) GetPodcastDetails(uuid string) (*PodcastDetails, error) {
 	podcast.Episodes = podcastEpisodes
 	return podcast, nil
 }
+
+func (m *PodcastModel) SearchPodcastsByName(name string) ([]Podcast, error) {
+	var podcasts []Podcast
+	rows, err := m.DB.Query(`SELECT * FROM podcasts WHERE podcast_name ILIKE $1`, "%"+name+"%")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var podcast Podcast
+		err = rows.Scan(
+			&podcast.ID,
+			&podcast.UUID,
+			&podcast.OwnerId,
+			&podcast.PodcastName,
+			&podcast.PodcastDesc,
+			&podcast.ThumbnailURL,
+			&podcast.CreatedAt,
+			&podcast.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		podcasts = append(podcasts, podcast)
+	}
+	return podcasts, nil
+}

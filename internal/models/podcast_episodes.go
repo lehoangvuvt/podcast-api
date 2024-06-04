@@ -88,3 +88,47 @@ func (m *PodcastEpisodeModel) GetEpisodeDetails(uuid string) (*PodcastEpisodeDet
 	}
 	return episode, nil
 }
+
+func (m *PodcastEpisodeModel) SearchEpisodesByName(name string) ([]PodcastEpisodeDetails, error) {
+	var episodes []PodcastEpisodeDetails
+	rows, err := m.DB.Query(`SELECT * FROM podcast_episodes WHERE episode_name ILIKE $1`, "%"+name+"%")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var episode PodcastEpisodeDetails
+		err = rows.Scan(
+			&episode.ID,
+			&episode.UUID,
+			&episode.PodcastId,
+			&episode.EpisodeName,
+			&episode.EpisodeNo,
+			&episode.EpisodeDesc,
+			&episode.SourceURL,
+			&episode.CreatedAt,
+			&episode.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		episodes = append(episodes, episode)
+	}
+	for index, item := range episodes {
+		var podcast Podcast
+		row := m.DB.QueryRow("SELECT * FROM podcasts WHERE id=$1", item.PodcastId)
+		err = row.Scan(
+			&podcast.ID,
+			&podcast.UUID,
+			&podcast.OwnerId,
+			&podcast.PodcastName,
+			&podcast.PodcastDesc,
+			&podcast.ThumbnailURL,
+			&podcast.CreatedAt,
+			&podcast.UpdatedAt,
+		)
+		if err == nil {
+			episodes[index].Podcast = podcast
+		}
+	}
+	return episodes, nil
+}

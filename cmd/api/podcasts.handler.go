@@ -45,3 +45,15 @@ func (app *application) getPodcastDetailsHandler(w http.ResponseWriter, r *http.
 	}
 	res.status(http.StatusOK).json(envelop{"podcast_details": podcastDetails})
 }
+
+func (app *application) SearchPodcastsByNameHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	params := httprouter.ParamsFromContext(r.Context())
+	q := params.ByName("q")
+	podcasts, err := app.models.PodcastModel.SearchPodcastsByName(q)
+	if err != nil {
+		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
+		return
+	}
+	res.status(http.StatusOK).json(envelop{"podcasts": podcasts})
+}

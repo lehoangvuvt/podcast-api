@@ -28,6 +28,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/podcasts/genres", app.createGenrePodcastHandler)
 	router.HandlerFunc(http.MethodPost, "/podcasts/episode", app.createPodcastEpisodeHandler)
 
+	router.HandlerFunc(http.MethodGet, "/search/:q", app.SearchHandler)
+
 	router.HandlerFunc(http.MethodGet, "/episodes/:uuid", app.getEpisodeDetailsHandler)
 
 	handler := crs.Handler(router)

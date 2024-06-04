@@ -125,3 +125,27 @@ func (m *GenreModel) GetGenreDetails(uuid string) (*GenreDetails, error) {
 	genre.Podcasts = podcasts
 	return genre, nil
 }
+
+func (m *GenreModel) SearchGenresByName(name string) ([]Genre, error) {
+	var genres []Genre
+	rows, err := m.DB.Query(`SELECT * FROM genres WHERE genre_name ILIKE $1`, "%"+name+"%")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var genre Genre
+		err = rows.Scan(
+			&genre.ID,
+			&genre.UUID,
+			&genre.GenreName,
+			&genre.GenreDesc,
+			&genre.BgImage,
+			&genre.CreatedAt,
+			&genre.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		genres = append(genres, genre)
+	}
+	return genres, nil
+}
