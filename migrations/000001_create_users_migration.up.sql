@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS users (
     hashed_password text NOT NULL,
     email text NOT NULL UNIQUE,
     is_active boolean DEFAULT false,
-    created_at time with time zone NOT NULL DEFAULT NOW(),
-    updated_at time with time zone
+    created_at timestamp with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp with time zone
 )

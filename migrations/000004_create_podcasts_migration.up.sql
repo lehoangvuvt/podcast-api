@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS podcasts (
     podcast_name text NOT NULL,
     podcast_desc text NOT NULL,
     thumbnail_url text NOT NULL,
-    created_at time with time zone NOT NULL DEFAULT NOW(),
-    updated_at time with time zone,
+    created_at timestamp with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp with time zone,
     FOREIGN KEY (owner_id) REFERENCES users(id)
 )

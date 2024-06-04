@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS genres (
     genre_name text NOT NULL,
     genre_desc text NOT NULL,
     bg_image text NOT NULL,
-    created_at time with time zone NOT NULL DEFAULT NOW(),
-    updated_at time with time zone
+    created_at timestamp with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp with time zone
 )
