@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	queryHelpers "vulh/soundcommunity/internal/utils"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -118,6 +119,39 @@ func (m *PodcastModel) GetPodcastDetails(uuid string) (*PodcastDetails, error) {
 func (m *PodcastModel) SearchPodcastsByName(name string) ([]Podcast, error) {
 	var podcasts []Podcast
 	rows, err := m.DB.Query(`SELECT * FROM podcasts WHERE podcast_name ILIKE $1`, "%"+name+"%")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var podcast Podcast
+		err = rows.Scan(
+			&podcast.ID,
+			&podcast.UUID,
+			&podcast.OwnerId,
+			&podcast.PodcastName,
+			&podcast.PodcastDesc,
+			&podcast.ThumbnailURL,
+			&podcast.CreatedAt,
+			&podcast.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		podcasts = append(podcasts, podcast)
+	}
+	return podcasts, nil
+}
+
+func (m *PodcastModel) SearchPodcasts(queryConfig *queryHelpers.QueryConfig) ([]Podcast, error) {
+	var podcasts []Podcast
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	queryStr := queryBuilder.
+		FromTable(queryConfig.FromTable).
+		WhereColumn(queryConfig.WhereColumnName).
+		Search(queryConfig.Operator, queryConfig.SearchValue).
+		Skip(queryConfig.Skip).
+		Limit(queryConfig.Limit).
+		GetQuery()
+	rows, err := m.DB.Query(queryStr)
 	if err != nil {
 		return nil, err
 	}
