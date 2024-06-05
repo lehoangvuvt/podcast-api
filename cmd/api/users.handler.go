@@ -72,3 +72,17 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 	res.status(http.StatusAccepted).json(user)
 }
+
+func (app *application) invalidateHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	c := &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   0,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, c)
+	res.status(http.StatusAccepted).json(envelop{"message": "invalidate user success"})
+}
