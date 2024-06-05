@@ -18,7 +18,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/login", app.loginHandler)
 	router.HandlerFunc(http.MethodGet, "/users/authenticate", app.AuthGuard(app.authenticate))
 	router.HandlerFunc(http.MethodGet, "/users/invalidate", app.AuthGuard(app.invalidateHandler))
-	router.HandlerFunc(http.MethodPut, "/users/favourites", app.AuthGuard(app.modifyUserFavouriteItemHandler))
+	router.HandlerFunc(http.MethodPost, "/users/favourites", app.AuthGuard(app.modifyUserFavouriteItemHandler))
 
 	router.HandlerFunc(http.MethodPost, "/genres", app.createGenreHandler)
 	router.HandlerFunc(http.MethodGet, "/genres", app.getAllGenres)
