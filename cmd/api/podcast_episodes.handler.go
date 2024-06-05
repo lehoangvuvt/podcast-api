@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"vulh/soundcommunity/internal/models"
 
 	"github.com/julienschmidt/httprouter"
@@ -34,4 +35,35 @@ func (app *application) getEpisodeDetailsHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	res.status(http.StatusCreated).json(envelop{"episode_details": episodeDetails})
+}
+
+func (app *application) getRelativeEpisodesHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	query := r.URL.Query()
+	var episodeNo int
+	var podcastId int
+	for key, value := range query {
+		if key == "episodeNo" {
+			var err error
+			episodeNo, err = strconv.Atoi(value[0])
+			if err != nil {
+				res.status(http.StatusBadRequest).json(envelop{"error": "invalid episode no"})
+				return
+			}
+		}
+		if key == "podcastId" {
+			var err error
+			podcastId, err = strconv.Atoi(value[0])
+			if err != nil {
+				res.status(http.StatusBadRequest).json(envelop{"error": "invalid podcast id"})
+				return
+			}
+		}
+	}
+	episodes, err := app.models.PodcastEpisodeModel.GetRelativeEpisodes(episodeNo, podcastId)
+	if err != nil {
+		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
+		return
+	}
+	res.status(http.StatusCreated).json(envelop{"episodes": episodes})
 }

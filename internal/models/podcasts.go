@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
 	queryHelpers "vulh/soundcommunity/internal/utils"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -91,8 +93,15 @@ func (m *PodcastModel) GetPodcastDetails(uuid string) (*PodcastDetails, error) {
 		return nil, err
 	}
 	var podcastEpisodes []PodcastEpisode
-	rows, err := m.DB.Query("SELECT * FROM podcast_episodes WHERE podcast_id=$1", podcast.ID)
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	rows, err := queryBuilder.
+		Select("*").
+		FromTable("podcast_episodes").
+		WhereColumn("podcast_id").
+		Equal(fmt.Sprintf("%v", podcast.ID)).
+		GetMany()
 	if err != nil {
+		log.Print(err.Error())
 		return nil, err
 	}
 	for rows.Next() {
@@ -144,15 +153,15 @@ func (m *PodcastModel) SearchPodcastsByName(name string) ([]Podcast, error) {
 func (m *PodcastModel) SearchPodcasts(queryConfig *queryHelpers.QueryConfig) ([]Podcast, error) {
 	var podcasts []Podcast
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
-	queryStr := queryBuilder.
+	rows, err := queryBuilder.
+		Select("*").
 		FromTable(queryConfig.FromTable).
 		WhereColumn(queryConfig.WhereColumnName).
 		Search(queryConfig.Operator, queryConfig.SearchValue).
 		OrderBy(queryConfig.OrderByColumnName, queryConfig.Direction).
 		Skip(queryConfig.Skip).
 		Limit(queryConfig.Limit).
-		GetQuery()
-	rows, err := m.DB.Query(queryStr)
+		GetMany()
 	if err != nil {
 		return nil, err
 	}

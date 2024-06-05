@@ -32,6 +32,8 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/episodes/:uuid", app.getEpisodeDetailsHandler)
 
+	router.HandlerFunc(http.MethodGet, "/relative/episodes", app.getRelativeEpisodesHandler)
+
 	router.HandlerFunc(http.MethodGet, "/home/feeds", app.GetHomeFeedsHandler)
 
 	handler := crs.Handler(router)

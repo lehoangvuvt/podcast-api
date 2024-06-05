@@ -34,11 +34,18 @@ type QueryConfig struct {
 	Direction         QueryOrderDirectionType `json:"direction"`
 	Skip              int                     `json:"skip"`
 	Limit             int                     `json:"limit"`
+	SelectColumns     []string                `json:"select_columns"`
 }
 
 type QueryBuilder struct {
 	DB    *sql.DB
 	query QueryConfig
+}
+
+func (builder *QueryBuilder) Select(columns ...string) *QueryBuilder {
+	builder.query.SelectColumns = []string{}
+	builder.query.SelectColumns = append(builder.query.SelectColumns, columns...)
+	return builder
 }
 
 func (builder *QueryBuilder) FromTable(tableName string) *QueryBuilder {
@@ -92,10 +99,6 @@ func (builder *QueryBuilder) Limit(limit int) *QueryBuilder {
 	return builder
 }
 
-func (builder *QueryBuilder) LeftJoin(joinTableName string, table1JoinColumn string, table2JoinColumn string) {
-
-}
-
 func (builder *QueryBuilder) GetQuery() string {
 	columnName := builder.query.WhereColumnName
 	var columnOperator string
@@ -107,12 +110,20 @@ func (builder *QueryBuilder) GetQuery() string {
 			columnOperator = "ILIKE"
 			columnValue = "'%" + builder.query.SearchValue + "%'"
 		case ColumnOperator.EQUAL:
-			columnOperator = "ILIKE"
+			columnOperator = "="
 			columnValue = "'" + builder.query.SearchValue + "'"
 		}
 		whereQuery = fmt.Sprintf("WHERE %v %v %v", columnName, columnOperator, columnValue)
 	}
-	queryStr := fmt.Sprintf("SELECT * FROM %v %v ", builder.query.FromTable, whereQuery)
+	var selectedColumns string
+	for i, column := range builder.query.SelectColumns {
+		if i < len(builder.query.SelectColumns)-1 {
+			selectedColumns += column + ", "
+		} else {
+			selectedColumns += column
+		}
+	}
+	queryStr := fmt.Sprintf("SELECT %v FROM %v %v ", selectedColumns, builder.query.FromTable, whereQuery)
 	if builder.query.OrderByColumnName != "" {
 		queryStr += fmt.Sprintf(" ORDER BY %v %v", builder.query.OrderByColumnName, builder.query.Direction)
 	}
@@ -123,4 +134,21 @@ func (builder *QueryBuilder) GetQuery() string {
 		queryStr += fmt.Sprintf(" LIMIT %v", builder.query.Limit)
 	}
 	return queryStr
+}
+
+func (builder *QueryBuilder) GetOne() *sql.Row {
+	builder.query.Limit = 1
+	builder.query.Skip = 0
+	queryStr := builder.GetQuery()
+	row := builder.DB.QueryRow(queryStr)
+	return row
+}
+
+func (builder *QueryBuilder) GetMany() (*sql.Rows, error) {
+	queryStr := builder.GetQuery()
+	rows, err := builder.DB.Query(queryStr)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
 }

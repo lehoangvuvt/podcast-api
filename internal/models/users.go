@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	queryHelpers "vulh/soundcommunity/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,7 +45,13 @@ func (m *UserModel) Insert(createUserInput *CreateUserInput) error {
 
 func (m *UserModel) GetUserById(id int) (*User, error) {
 	user := &User{}
-	row := m.DB.QueryRow("SELECT id, username, email FROM users WHERE id=$1", id)
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	row := queryBuilder.
+		Select("id", "username", "email").
+		FromTable("users").
+		WhereColumn("id").
+		Equal(fmt.Sprintf("%v", id)).
+		GetOne()
 	err := row.Scan(&user.ID, &user.Username, &user.Email)
 	if err != nil {
 		return nil, errors.New("invalid user id")
@@ -53,7 +61,13 @@ func (m *UserModel) GetUserById(id int) (*User, error) {
 
 func (m *UserModel) Login(loginInput *LoginInput) (*User, error) {
 	user := &User{}
-	row := m.DB.QueryRow("SELECT id, username, hashed_password, email FROM users WHERE username=$1", loginInput.Username)
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	row := queryBuilder.
+		Select("id", "username", "hashed_password", "email").
+		FromTable("users").
+		WhereColumn("username").
+		Equal(loginInput.Username).
+		GetOne()
 	err := row.Scan(&user.ID, &user.Username, &user.HashedPassword, &user.Email)
 	if err != nil {
 		return nil, errors.New("invalid username or password")

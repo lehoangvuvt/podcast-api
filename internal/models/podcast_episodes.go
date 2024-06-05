@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	queryHelpers "vulh/soundcommunity/internal/utils"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -137,15 +138,15 @@ func (m *PodcastEpisodeModel) SearchEpisodesByName(name string) ([]PodcastEpisod
 func (m *PodcastEpisodeModel) SearchEpisodes(queryConfig *queryHelpers.QueryConfig) ([]PodcastEpisodeDetails, error) {
 	var episodes []PodcastEpisodeDetails
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
-	queryStr := queryBuilder.
+	rows, err := queryBuilder.
+		Select("*").
 		FromTable(queryConfig.FromTable).
 		WhereColumn(queryConfig.WhereColumnName).
 		Search(queryConfig.Operator, queryConfig.SearchValue).
 		OrderBy(queryConfig.OrderByColumnName, queryConfig.Direction).
 		Skip(queryConfig.Skip).
 		Limit(queryConfig.Limit).
-		GetQuery()
-	rows, err := m.DB.Query(queryStr)
+		GetMany()
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +171,56 @@ func (m *PodcastEpisodeModel) SearchEpisodes(queryConfig *queryHelpers.QueryConf
 	for index, item := range episodes {
 		var podcast Podcast
 		row := m.DB.QueryRow("SELECT * FROM podcasts WHERE id=$1", item.PodcastId)
+		err = row.Scan(
+			&podcast.ID,
+			&podcast.UUID,
+			&podcast.OwnerId,
+			&podcast.PodcastName,
+			&podcast.PodcastDesc,
+			&podcast.ThumbnailURL,
+			&podcast.CreatedAt,
+			&podcast.UpdatedAt,
+		)
+		if err == nil {
+			episodes[index].Podcast = podcast
+		}
+	}
+	return episodes, nil
+}
+
+func (m *PodcastEpisodeModel) GetRelativeEpisodes(episodeNo int, podcastId int) ([]PodcastEpisodeDetails, error) {
+	var episodes []PodcastEpisodeDetails
+	rows, err := m.DB.Query("SELECT * FROM podcast_episodes WHERE podcast_id = $1 AND episode_no != $2", podcastId, episodeNo)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var episode PodcastEpisodeDetails
+		err = rows.Scan(
+			&episode.ID,
+			&episode.UUID,
+			&episode.PodcastId,
+			&episode.EpisodeName,
+			&episode.EpisodeNo,
+			&episode.EpisodeDesc,
+			&episode.SourceURL,
+			&episode.CreatedAt,
+			&episode.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		episodes = append(episodes, episode)
+	}
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	for index, item := range episodes {
+		var podcast Podcast
+		row := queryBuilder.
+			Select("*").
+			FromTable("podcasts").
+			WhereColumn("id").
+			Equal(fmt.Sprintf("%v", item.PodcastId)).
+			GetOne()
 		err = row.Scan(
 			&podcast.ID,
 			&podcast.UUID,
