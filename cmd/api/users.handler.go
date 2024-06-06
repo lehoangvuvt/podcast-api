@@ -82,6 +82,8 @@ func (app *application) invalidateHandler(w http.ResponseWriter, r *http.Request
 		Expires:  time.Unix(0, 0),
 		MaxAge:   0,
 		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 	http.SetCookie(w, c)
 	res.status(http.StatusAccepted).json(envelop{"message": "invalidate user success"})
