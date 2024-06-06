@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"vulh/soundcommunity/internal/models"
 )
 
 type UserFavouriteItemType string
@@ -29,6 +30,24 @@ type ModifyUserFavouriteItemInput struct {
 	Type     UserFavouriteItemType     `json:"type"`
 	ItemId   int                       `json:"item_id"`
 	Operator UserFavouriteOperatorType `json:"operator"`
+}
+
+type UserFavouriteItems struct {
+	FavouriteEpisodes []models.PodcastEpisode `json:"favourite_episodes"`
+	FavouritePodcasts []models.Podcast        `json:"favourite_podcasts"`
+}
+
+func (app *application) getUserFavouriteItemsHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	userFavouriteItems := &UserFavouriteItems{}
+	userId := r.Context().Value(ContextUserIdKey)
+	episodes, err := app.models.UserModel.GetUserFavouriteEpisodes(userId.(int))
+	if err != nil {
+		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
+		return
+	}
+	userFavouriteItems.FavouriteEpisodes = episodes
+	res.status(http.StatusOK).json(userFavouriteItems)
 }
 
 func (app *application) modifyUserFavouriteItemHandler(w http.ResponseWriter, r *http.Request) {

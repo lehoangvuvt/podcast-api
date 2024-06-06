@@ -20,10 +20,9 @@ type User struct {
 }
 
 type UserDetails struct {
-	ID                int              `json:"id"`
-	Username          string           `json:"username"`
-	Email             string           `json:"email"`
-	FavouriteEpisodes []PodcastEpisode `json:"favourite_episodes"`
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type CreateUserInput struct {
@@ -71,44 +70,6 @@ func (m *UserModel) GetUserById(id int) (*UserDetails, error) {
 	err := row.Scan(&userDetails.ID, &userDetails.Username, &userDetails.Email)
 	if err != nil {
 		return nil, errors.New("invalid user id")
-	}
-	rows, err := queryBuilder.
-		Select("episode_id").
-		FromTable("user_favourite_episodes").
-		WhereColumn("user_id").
-		Equal(fmt.Sprintf("%v", userDetails.ID)).
-		GetMany()
-	if err == nil {
-		var episodes []PodcastEpisode
-		for rows.Next() {
-			var episodeId int
-			err = rows.Scan(&episodeId)
-			log.Print(episodeId)
-			if err == nil {
-				var episode PodcastEpisode
-				row := queryBuilder.
-					Select("*").
-					FromTable("podcast_episodes").
-					WhereColumn("id").
-					Equal(fmt.Sprintf("%v", episodeId)).
-					GetOne()
-				err = row.Scan(
-					&episode.ID,
-					&episode.UUID,
-					&episode.PodcastId,
-					&episode.EpisodeName,
-					&episode.EpisodeNo,
-					&episode.EpisodeDesc,
-					&episode.SourceURL,
-					&episode.CreatedAt,
-					&episode.UpdatedAt,
-				)
-				if err == nil {
-					episodes = append(episodes, episode)
-				}
-			}
-		}
-		userDetails.FavouriteEpisodes = episodes
 	}
 	return userDetails, nil
 }
@@ -164,4 +125,47 @@ func (m *UserModel) DeleteUserFavouriteEpisode(userId int, episodeId int) error 
 		return err
 	}
 	return nil
+}
+
+func (m *UserModel) GetUserFavouriteEpisodes(userId int) ([]PodcastEpisode, error) {
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	rows, err := queryBuilder.
+		Select("episode_id").
+		FromTable("user_favourite_episodes").
+		WhereColumn("user_id").
+		Equal(fmt.Sprintf("%v", userId)).
+		GetMany()
+	if err == nil {
+		var episodes []PodcastEpisode
+		for rows.Next() {
+			var episodeId int
+			err = rows.Scan(&episodeId)
+			log.Print(episodeId)
+			if err == nil {
+				var episode PodcastEpisode
+				row := queryBuilder.
+					Select("*").
+					FromTable("podcast_episodes").
+					WhereColumn("id").
+					Equal(fmt.Sprintf("%v", episodeId)).
+					GetOne()
+				err = row.Scan(
+					&episode.ID,
+					&episode.UUID,
+					&episode.PodcastId,
+					&episode.EpisodeName,
+					&episode.EpisodeNo,
+					&episode.EpisodeDesc,
+					&episode.SourceURL,
+					&episode.CreatedAt,
+					&episode.UpdatedAt,
+				)
+				if err == nil {
+					episodes = append(episodes, episode)
+				}
+			}
+		}
+		return episodes, nil
+	}
+	return nil, err
 }
