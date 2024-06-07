@@ -65,5 +65,5 @@ func (app *application) getRelativeEpisodesHandler(w http.ResponseWriter, r *htt
 		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
 		return
 	}
-	res.status(http.StatusCreated).json(envelop{"episodes": episodes})
+	res.status(http.StatusOK).json(envelop{"episodes": episodes})
 }

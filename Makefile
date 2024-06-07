@@ -1,13 +1,13 @@
 include .env
 
+start:	
+	go run ./cmd/api
+
 build:	
-	go build -o ./build.exe ./cmd/api
+	go build -o ./build ./cmd/api
 
 run:
-	./build.exe
-
-build/run:
-	make build && make run
+	./build
 
 migrations/new:
 	@echo "Creating migration files for ${name}..."
