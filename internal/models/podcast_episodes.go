@@ -140,7 +140,7 @@ func (m *PodcastEpisodeModel) SearchEpisodes(queryConfig *queryHelpers.QueryConf
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
 	rows, err := queryBuilder.
 		Select("*").
-		FromTable(queryConfig.FromTable).
+		FromTable("podcast_episodes").
 		WhereColumn(queryConfig.WhereColumnName).
 		Search(queryConfig.Operator, queryConfig.SearchValue).
 		OrderBy(queryConfig.OrderByColumnName, queryConfig.Direction).
