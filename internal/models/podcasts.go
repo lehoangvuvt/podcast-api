@@ -183,3 +183,65 @@ func (m *PodcastModel) SearchPodcasts(queryConfig *queryHelpers.QueryConfig) ([]
 	}
 	return podcasts, nil
 }
+
+func (m *PodcastModel) GetPodcastsHomeFeeds(queryConfig *queryHelpers.QueryConfig) ([]PodcastDetails, error) {
+	var podcasts []PodcastDetails
+	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
+	rows, err := queryBuilder.
+		Select("*").
+		FromTable(queryConfig.FromTable).
+		WhereColumn(queryConfig.WhereColumnName).
+		Search(queryConfig.Operator, queryConfig.SearchValue).
+		OrderBy(queryConfig.OrderByColumnName, queryConfig.Direction).
+		Skip(queryConfig.Skip).
+		Limit(queryConfig.Limit).
+		GetMany()
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var podcast PodcastDetails
+		err = rows.Scan(
+			&podcast.ID,
+			&podcast.UUID,
+			&podcast.OwnerId,
+			&podcast.PodcastName,
+			&podcast.PodcastDesc,
+			&podcast.ThumbnailURL,
+			&podcast.CreatedAt,
+			&podcast.UpdatedAt)
+		if err == nil {
+			var podcastEpisodes []PodcastEpisode
+			rows, err := queryBuilder.
+				Select("*").
+				FromTable("podcast_episodes").
+				WhereColumn("podcast_id").
+				Equal(fmt.Sprintf("%v", podcast.ID)).
+				OrderBy("created_at", queryHelpers.QueryDirection.DESC).
+				GetMany()
+			if err == nil {
+				for rows.Next() {
+					var episode PodcastEpisode
+					err = rows.Scan(
+						&episode.ID,
+						&episode.UUID,
+						&episode.PodcastId,
+						&episode.EpisodeName,
+						&episode.EpisodeNo,
+						&episode.EpisodeDesc,
+						&episode.SourceURL,
+						&episode.CreatedAt,
+						&episode.UpdatedAt,
+					)
+					if err == nil {
+						podcastEpisodes = append(podcastEpisodes, episode)
+					}
+				}
+				podcast.Episodes = podcastEpisodes
+			}
+			podcasts = append(podcasts, podcast)
+		}
+
+	}
+	return podcasts, nil
+}
