@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 )
 
 func (app *application) AuthGuard(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("AuthGuard")
 		res := &Response{w: w}
 		cookieValue, err := r.Cookie("access_token")
 

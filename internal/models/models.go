@@ -8,6 +8,8 @@ type Models struct {
 	PodcastModel        *PodcastModel
 	PodcastEpisodeModel *PodcastEpisodeModel
 	GenerePodcastModel  *GenerePodcastModel
+	PostModel           *PostModel
+	TopicModel          *TopicModel
 }
 
 func NewModels(DB *sql.DB) *Models {
@@ -17,5 +19,7 @@ func NewModels(DB *sql.DB) *Models {
 		PodcastModel:        &PodcastModel{DB: DB},
 		PodcastEpisodeModel: &PodcastEpisodeModel{DB: DB},
 		GenerePodcastModel:  &GenerePodcastModel{DB: DB},
+		PostModel:           &PostModel{DB: DB},
+		TopicModel:          &TopicModel{DB: DB},
 	}
 }

@@ -39,6 +39,18 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/home/feeds", app.GetHomeFeedsHandler)
 
+	router.HandlerFunc(http.MethodPost, "/posts", app.AuthGuard(app.createPostHandler))
+	router.HandlerFunc(http.MethodGet, "/posts/search/:q", app.getPostsHandler)
+	router.HandlerFunc(http.MethodGet, "/posts/post/:slug", app.getPostBySlugHandler)
+
+	router.HandlerFunc(http.MethodGet, "/topics", app.getAllTopicsHandler)
+	router.HandlerFunc(http.MethodGet, "/topics/search/:q", app.searchTopicsByNameHandler)
+	router.HandlerFunc(http.MethodGet, "/topics/posts/:slug", app.getPostsByTopicHandler)
+	router.HandlerFunc(http.MethodGet, "/topics/relative/:slug", app.getRelativeTopicsHandler)
+	router.HandlerFunc(http.MethodGet, "/topics/recommended", app.getRecommendedTopics)
+
+	router.HandlerFunc(http.MethodPost, "/upload", app.AuthGuard(app.uploadFileHandler))
+
 	handler := crs.Handler(router)
 	return handler
 }
