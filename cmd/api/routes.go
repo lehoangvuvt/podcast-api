@@ -10,7 +10,7 @@ import (
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
 	crs := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://podcast-client.vercel.app", "https://podcast.healing-journey.asia"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://podcast-client.vercel.app", "https://podcast.healing-journey.asia", "https://stories.healing-journey.asia/"},
 		AllowCredentials: true,
 	})
 
