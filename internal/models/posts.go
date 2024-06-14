@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 	queryHelpers "vulh/soundcommunity/internal/utils"
 
@@ -131,7 +130,6 @@ func (m *PostModel) GetPostBySlug(slug string) (*PostDetails, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Print(post.Slug)
 	var topics []Topic
 	rows, err := m.DB.Query(`SELECT 
 							topics.id, topics.slug, topics.topic_name, topics.created_at, topics.updated_at

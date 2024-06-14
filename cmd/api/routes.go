@@ -12,6 +12,7 @@ func (app *application) routes() http.Handler {
 	crs := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://podcast-client.vercel.app", "https://podcast.healing-journey.asia", "https://stories.healing-journey.asia"},
 		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 	})
 
 	router.HandlerFunc(http.MethodPost, "/users", app.createUserHandler)
@@ -42,6 +43,9 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/posts", app.AuthGuard(app.createPostHandler))
 	router.HandlerFunc(http.MethodGet, "/posts/search/:q", app.getPostsHandler)
 	router.HandlerFunc(http.MethodGet, "/posts/post/:slug", app.getPostBySlugHandler)
+	router.HandlerFunc(http.MethodDelete, "/posts/likes/:id", app.AuthGuard(app.unlikePostHandler))
+	router.HandlerFunc(http.MethodPut, "/posts/likes/:id", app.AuthGuard(app.likePostHandler))
+	router.HandlerFunc(http.MethodGet, "/posts/likes/:id", app.getPostLikesByPostIdHandler)
 
 	router.HandlerFunc(http.MethodGet, "/topics", app.getAllTopicsHandler)
 	router.HandlerFunc(http.MethodGet, "/topics/search/:q", app.searchTopicsByNameHandler)

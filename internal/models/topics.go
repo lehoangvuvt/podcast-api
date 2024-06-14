@@ -164,7 +164,7 @@ func (m *TopicModel) GetRecommendedTopics() ([]Topic, error) {
 							FROM posts_topics
 							group by topic_id
 							order by COUNT(topic_id) desc
-							limit 5`)
+							limit 8`)
 	if err != nil {
 		return nil, err
 	}

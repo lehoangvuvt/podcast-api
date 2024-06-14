@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+	"strconv"
 	"vulh/soundcommunity/internal/models"
 
 	"github.com/julienschmidt/httprouter"
@@ -73,11 +73,26 @@ func (app *application) getPostsByTopicHandler(w http.ResponseWriter, r *http.Re
 	res := &Response{w: w}
 	params := httprouter.ParamsFromContext(r.Context())
 	topicSlug := params.ByName("slug")
-	log.Print(topicSlug)
 	posts, err := app.models.PostModel.GetPostsByTopic(topicSlug)
 	if err != nil {
 		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
 		return
 	}
 	res.status(http.StatusOK).json(envelop{"posts": posts})
+}
+
+func (app *application) getPostLikesByPostIdHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	params := httprouter.ParamsFromContext(r.Context())
+	postId, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || postId < 0 {
+		res.status(http.StatusBadRequest).json(envelop{"error": "invalid post id"})
+		return
+	}
+	postLikes, err := app.models.PostLikeModel.GetPostLikesByPostId(postId)
+	if err != nil {
+		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
+		return
+	}
+	res.status(http.StatusOK).json(envelop{"post_likes": postLikes})
 }

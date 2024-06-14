@@ -169,3 +169,24 @@ func (m *UserModel) GetUserFavouriteEpisodes(userId int) ([]PodcastEpisode, erro
 	}
 	return nil, err
 }
+
+func (m *UserModel) GetUserLikedPosts(userId int) ([]Post, error) {
+	// rows, err := m.DB.Query("SELECT post_id FROM posts_likes WHERE user_id=$1", userId)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for rows.Next() {
+	// 	var postId int
+	// 	err = rows.Scan(&postId)
+	// 	if err == nil {
+	// 		var post Post
+	// 		rows, err = m.DB.Query("SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at FROM posts WHERE id=$1", postId)
+	// 		if err == nil {
+	// 			for rows.Next() {
+
+	// 			}
+	// 		}
+	// 	}
+	// }
+	return nil, nil
+}
