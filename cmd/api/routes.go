@@ -46,6 +46,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodDelete, "/posts/likes/:id", app.AuthGuard(app.unlikePostHandler))
 	router.HandlerFunc(http.MethodPut, "/posts/likes/:id", app.AuthGuard(app.likePostHandler))
 	router.HandlerFunc(http.MethodGet, "/posts/likes/:id", app.getPostLikesByPostIdHandler)
+	router.HandlerFunc(http.MethodPost, "/posts/comments/:id", app.AuthGuard(app.createCommentToPostHandler))
+	router.HandlerFunc(http.MethodGet, "/posts/comments/:id", app.getCommentsByPostIdHandler)
 
 	router.HandlerFunc(http.MethodGet, "/topics", app.getAllTopicsHandler)
 	router.HandlerFunc(http.MethodGet, "/topics/search/:q", app.searchTopicsByNameHandler)

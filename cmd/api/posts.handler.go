@@ -96,3 +96,19 @@ func (app *application) getPostLikesByPostIdHandler(w http.ResponseWriter, r *ht
 	}
 	res.status(http.StatusOK).json(envelop{"post_likes": postLikes})
 }
+
+func (app *application) getCommentsByPostIdHandler(w http.ResponseWriter, r *http.Request) {
+	res := &Response{w: w}
+	params := httprouter.ParamsFromContext(r.Context())
+	postId, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || postId < 0 {
+		res.status(http.StatusBadRequest).json(envelop{"error": "invalid post id"})
+		return
+	}
+	comments, err := app.models.PostCommentModel.GetCommentsByPostId(postId)
+	if err != nil {
+		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
+		return
+	}
+	res.status(http.StatusOK).json(envelop{"comments": comments})
+}
