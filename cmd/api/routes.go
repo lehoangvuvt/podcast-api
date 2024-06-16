@@ -51,7 +51,7 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/topics", app.getAllTopicsHandler)
 	router.HandlerFunc(http.MethodGet, "/topics/search/:q", app.searchTopicsByNameHandler)
-	router.HandlerFunc(http.MethodGet, "/topics/posts/:slug", app.getPostsByTopicHandler)
+	router.HandlerFunc(http.MethodGet, "/topics/posts", app.getPostsByTopicHandler)
 	router.HandlerFunc(http.MethodGet, "/topics/relative/:slug", app.getRelativeTopicsHandler)
 	router.HandlerFunc(http.MethodGet, "/topics/recommended", app.getRecommendedTopics)
 

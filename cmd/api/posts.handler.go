@@ -39,7 +39,7 @@ func (app *application) getPostBySlugHandler(w http.ResponseWriter, r *http.Requ
 	var relativePosts []models.PostWithUserInfo
 	relativePostMap := make(map[int]models.PostWithUserInfo)
 	for _, topic := range post.Topics {
-		rPosts, err := app.models.PostModel.GetPostsByTopic(topic.Slug)
+		rPosts, _, _, err := app.models.PostModel.GetPostsByTopic(topic.Slug, 0, 4)
 		if err == nil {
 			for _, rPost := range rPosts {
 				if rPost.ID == post.ID {
@@ -61,29 +61,70 @@ func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) 
 	res := &Response{w: w}
 	query := r.URL.Query()
 	q := query.Get("q")
-	page, err := strconv.Atoi(query.Get("page"))
-	if err != nil || page < 0 {
-		res.status(http.StatusBadRequest).json(envelop{"error": "invalid page"})
-		return
+	start := -1
+	if query.Has("start") {
+		startConv, err := strconv.Atoi(query.Get("start"))
+		if err == nil {
+			start = startConv
+		}
 	}
-	posts, err := app.models.PostModel.GetPosts(q, page)
+	end := -1
+	if query.Has("end") {
+		endConv, err := strconv.Atoi(query.Get("end"))
+		if err == nil {
+			end = endConv
+		}
+	}
+	page := 0
+	var pageError error
+	if query.Has("page") {
+		page, pageError = strconv.Atoi(query.Get("page"))
+		if pageError != nil {
+			page = 0
+		}
+	}
+	take := 5
+	var takeError error
+	if query.Has("take") {
+		take, takeError = strconv.Atoi(query.Get("take"))
+		if takeError != nil {
+			take = 0
+		}
+	}
+	posts, hasNext, hasPrev, err := app.models.PostModel.GetPosts(q, page, take, start, end)
 	if err != nil {
 		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
 		return
 	}
-	res.status(http.StatusOK).json(envelop{"posts": posts})
+	res.status(http.StatusOK).json(envelop{"posts": posts, "has_next": hasNext, "has_prev": hasPrev})
 }
 
 func (app *application) getPostsByTopicHandler(w http.ResponseWriter, r *http.Request) {
 	res := &Response{w: w}
-	params := httprouter.ParamsFromContext(r.Context())
-	topicSlug := params.ByName("slug")
-	posts, err := app.models.PostModel.GetPostsByTopic(topicSlug)
+	query := r.URL.Query()
+	topicSlug := query.Get("slug")
+	page := 0
+	var pageError error
+	if query.Has("page") {
+		page, pageError = strconv.Atoi(query.Get("page"))
+		if pageError != nil {
+			page = 0
+		}
+	}
+	take := 5
+	var takeError error
+	if query.Has("take") {
+		take, takeError = strconv.Atoi(query.Get("take"))
+		if takeError != nil {
+			take = 0
+		}
+	}
+	posts, totalRows, hasNext, err := app.models.PostModel.GetPostsByTopic(topicSlug, page, take)
 	if err != nil {
 		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
 		return
 	}
-	res.status(http.StatusOK).json(envelop{"posts": posts})
+	res.status(http.StatusOK).json(envelop{"posts": posts, "total": totalRows, "has_next": hasNext})
 }
 
 func (app *application) getPostLikesByPostIdHandler(w http.ResponseWriter, r *http.Request) {
