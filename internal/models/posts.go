@@ -293,7 +293,9 @@ func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]Pos
 	rows, err := m.DB.Query(`SELECT posts.id, posts.user_id, posts.slug, posts.title, posts.short_content, posts.thumbnail_url, posts.created_at 
 							FROM posts LEFT JOIN posts_topics
 							ON posts.id = posts_topics.post_id
-							WHERE posts_topics.topic_id = $1 OFFSET $2 LIMIT $3`, topicId, skip, limit)
+							WHERE posts_topics.topic_id = $1 
+							ORDER BY created_at DESC 
+							OFFSET $2 LIMIT $3`, topicId, skip, limit)
 	if err != nil {
 		return nil, 0, false, err
 	}
