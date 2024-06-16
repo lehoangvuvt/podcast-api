@@ -41,7 +41,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/home/feeds", app.GetHomeFeedsHandler)
 
 	router.HandlerFunc(http.MethodPost, "/posts", app.AuthGuard(app.createPostHandler))
-	router.HandlerFunc(http.MethodGet, "/posts/search/:q", app.getPostsHandler)
+	router.HandlerFunc(http.MethodGet, "/posts/search", app.getPostsHandler)
 	router.HandlerFunc(http.MethodGet, "/posts/post/:slug", app.getPostBySlugHandler)
 	router.HandlerFunc(http.MethodDelete, "/posts/likes/:id", app.AuthGuard(app.unlikePostHandler))
 	router.HandlerFunc(http.MethodPut, "/posts/likes/:id", app.AuthGuard(app.likePostHandler))

@@ -59,9 +59,14 @@ func (app *application) getPostBySlugHandler(w http.ResponseWriter, r *http.Requ
 
 func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	res := &Response{w: w}
-	params := httprouter.ParamsFromContext(r.Context())
-	q := params.ByName("q")
-	posts, err := app.models.PostModel.GetPosts(q)
+	query := r.URL.Query()
+	q := query.Get("q")
+	page, err := strconv.Atoi(query.Get("page"))
+	if err != nil || page < 0 {
+		res.status(http.StatusBadRequest).json(envelop{"error": "invalid page"})
+		return
+	}
+	posts, err := app.models.PostModel.GetPosts(q, page)
 	if err != nil {
 		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
 		return

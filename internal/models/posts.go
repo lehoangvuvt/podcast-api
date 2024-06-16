@@ -152,16 +152,21 @@ func (m *PostModel) GetPostBySlug(slug string) (*PostDetails, error) {
 	return post, nil
 }
 
-func (m *PostModel) GetPosts(q string) ([]PostWithUserInfo, error) {
+func (m *PostModel) GetPosts(q string, page int) ([]PostWithUserInfo, error) {
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
 	rows := &sql.Rows{}
 	var err error
 	if q != "*" {
+		limit := 5
+		skip := page * limit
 		searchParams := "'%" + q + "%'"
 		queryString := fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
 									FROM posts 
 									WHERE title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v 
-									ORDER BY created_at DESC`, searchParams, searchParams)
+									ORDER BY created_at DESC 
+									SKIP %v 
+									LIMIT %v
+									`, searchParams, searchParams, skip, limit)
 		rows, err = m.DB.Query(queryString)
 	} else {
 		rows, err = queryBuilder.
