@@ -39,7 +39,7 @@ func (app *application) getPostBySlugHandler(w http.ResponseWriter, r *http.Requ
 	var relativePosts []models.PostWithUserInfo
 	relativePostMap := make(map[int]models.PostWithUserInfo)
 	for _, topic := range post.Topics {
-		rPosts, _, _, err := app.models.PostModel.GetPostsByTopic(topic.Slug, 0, 4)
+		rPosts, _, _, _, err := app.models.PostModel.GetPostsByTopic(topic.Slug, 0, 4)
 		if err == nil {
 			for _, rPost := range rPosts {
 				if rPost.ID == post.ID {
@@ -119,12 +119,12 @@ func (app *application) getPostsByTopicHandler(w http.ResponseWriter, r *http.Re
 			take = 0
 		}
 	}
-	posts, totalRows, hasNext, err := app.models.PostModel.GetPostsByTopic(topicSlug, page, take)
+	posts, totalRows, hasNext, totalPages, err := app.models.PostModel.GetPostsByTopic(topicSlug, page, take)
 	if err != nil {
 		res.status(http.StatusBadRequest).json(envelop{"error": err.Error()})
 		return
 	}
-	res.status(http.StatusOK).json(envelop{"posts": posts, "total": totalRows, "has_next": hasNext})
+	res.status(http.StatusOK).json(envelop{"posts": posts, "total": totalRows, "total_pages": totalPages, "has_next": hasNext})
 }
 
 func (app *application) getPostLikesByPostIdHandler(w http.ResponseWriter, r *http.Request) {

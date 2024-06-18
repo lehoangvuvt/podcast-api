@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"database/sql"
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 	queryHelpers "vulh/soundcommunity/internal/utils"
@@ -172,15 +173,15 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 			if start != -1 {
 				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
 											FROM posts 
-											WHERE (title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v) AND created_at > '%v'
-											ORDER BY created_at ASC 
+											WHERE (title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v) AND id > %v
+											ORDER BY id ASC 
 											LIMIT %v`, searchParams, searchParams, start, limit)
 			}
 			if end != -1 {
 				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
 											FROM posts 
-											WHERE (title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v) AND created_at < '%v'
-											ORDER BY created_at DESC 
+											WHERE (title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v) AND id < %v
+											ORDER BY id DESC 
 											LIMIT %v`, searchParams, searchParams, end, limit)
 			}
 		}
@@ -245,9 +246,11 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 			posts = append(posts, post)
 		}
 	}
-	slices.SortFunc(posts, func(a, b PostWithUserInfo) int {
-		return cmp.Compare(b.ID, a.ID)
-	})
+	if start != -1 {
+		slices.SortFunc(posts, func(a, b PostWithUserInfo) int {
+			return cmp.Compare(b.ID, a.ID)
+		})
+	}
 	hasNext := false
 	hasPrev := false
 	if len(posts) > 0 && len(posts) <= limit {
@@ -275,7 +278,7 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 	return posts, hasNext, hasPrev, nil
 }
 
-func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]PostWithUserInfo, int, bool, error) {
+func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]PostWithUserInfo, int, bool, float64, error) {
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
 	row := queryBuilder.
 		Select("id").
@@ -286,7 +289,7 @@ func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]Pos
 	var topicId int
 	err := row.Scan(&topicId)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, 0, err
 	}
 	limit := take
 	skip := page * limit
@@ -297,7 +300,7 @@ func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]Pos
 							ORDER BY created_at DESC 
 							OFFSET $2 LIMIT $3`, topicId, skip, limit)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, 0, err
 	}
 	var totalRows int
 	row = m.DB.QueryRow(`SELECT COUNT(id) FROM posts_topics WHERE posts_topics.topic_id = $1`, topicId)
@@ -330,6 +333,7 @@ func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]Pos
 			posts = append(posts, post)
 		}
 	}
+	totalPages := math.Ceil((float64(totalRows)) / float64(limit))
 	hasNext := (skip + take) < totalRows
-	return posts, totalRows, hasNext, nil
+	return posts, totalRows, hasNext, totalPages, nil
 }
