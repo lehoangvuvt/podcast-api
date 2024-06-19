@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS posts (
     short_content text NOT NULL,
     thumbnail_url text,
     content text NOT NULL,
+    editor_type integer DEFAULT 2,
     created_at timestamp with time zone NOT NULL DEFAULT NOW(),
     updated_at timestamp with time zone,
     FOREIGN KEY (user_id) REFERENCES users(id)

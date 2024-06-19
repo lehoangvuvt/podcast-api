@@ -20,6 +20,7 @@ type Post struct {
 	ShortContent string         `json:"short_content"`
 	ThumbnailUrl string         `json:"thumbnail_url"`
 	Content      string         `json:"content"`
+	EditorType   int            `json:"editor_type"`
 	CreatedAt    string         `json:"created_at"`
 	UpdatedAt    sql.NullString `json:"-"`
 }
@@ -33,6 +34,7 @@ type PostDetails struct {
 	ThumbnailUrl string         `json:"thumbnail_url"`
 	Content      string         `json:"content"`
 	Topics       []Topic        `json:"topics"`
+	EditorType   int            `json:"editor_type"`
 	CreatedAt    string         `json:"created_at"`
 	UpdatedAt    sql.NullString `json:"-"`
 }
@@ -46,6 +48,7 @@ type PostWithUserInfo struct {
 	ShortContent string         `json:"short_content"`
 	ThumbnailUrl string         `json:"thumbnail_url"`
 	Content      string         `json:"content"`
+	EditorType   int            `json:"editor_type"`
 	CreatedAt    string         `json:"created_at"`
 	UpdatedAt    sql.NullString `json:"-"`
 }
@@ -124,12 +127,12 @@ func (m *PostModel) GetPostBySlug(slug string) (*PostDetails, error) {
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
 	post := &PostDetails{}
 	row := queryBuilder.
-		Select("id", "user_id", "slug", "title", "content", "created_at", "updated_at").
+		Select("id", "user_id", "slug", "title", "content", "editor_type", "created_at", "updated_at").
 		FromTable("posts").
 		WhereColumn("slug").
 		Equal(slug).
 		GetOne()
-	err := row.Scan(&post.ID, &post.UserId, &post.Slug, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt)
+	err := row.Scan(&post.ID, &post.UserId, &post.Slug, &post.Title, &post.Content, &post.EditorType, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -164,21 +167,21 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 		queryString := ""
 		searchParams := "'%" + q + "%'"
 		if end == -1 && start == -1 {
-			queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
+			queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, editor_type, created_at 
 										FROM posts 
 										WHERE title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v 
 										ORDER BY created_at DESC 
 										LIMIT %v`, searchParams, searchParams, limit)
 		} else {
 			if start != -1 {
-				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
+				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, editor_type, created_at 
 											FROM posts 
 											WHERE (title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v) AND id > %v
 											ORDER BY id ASC 
 											LIMIT %v`, searchParams, searchParams, start, limit)
 			}
 			if end != -1 {
-				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
+				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, editor_type, created_at 
 											FROM posts 
 											WHERE (title ILIKE %v OR REPLACE(slug, '-', ' ') ILIKE %v) AND id < %v
 											ORDER BY id DESC 
@@ -192,11 +195,11 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 	} else {
 		queryString := ""
 		if end == -1 && start == -1 {
-			queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
+			queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, editor_type, created_at 
 										FROM posts ORDER BY created_at DESC LIMIT %v`, limit)
 		} else {
 			if start != -1 {
-				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
+				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, editor_type, created_at 
 											FROM posts 
 											WHERE id > %v
 											ORDER BY id ASC 
@@ -205,7 +208,7 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 			}
 
 			if end != -1 {
-				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, created_at 
+				queryString = fmt.Sprintf(`SELECT id, user_id, slug, title, short_content, thumbnail_url, editor_type, created_at 
 											FROM posts 
 											WHERE id < %v
 											ORDER BY id DESC 
@@ -230,6 +233,7 @@ func (m *PostModel) GetPosts(q string, page int, take int, start int, end int) (
 			&post.Title,
 			&post.ShortContent,
 			&post.ThumbnailUrl,
+			&post.EditorType,
 			&post.CreatedAt)
 		if err == nil {
 			var username string
@@ -293,7 +297,7 @@ func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]Pos
 	}
 	limit := take
 	skip := page * limit
-	rows, err := m.DB.Query(`SELECT posts.id, posts.user_id, posts.slug, posts.title, posts.short_content, posts.thumbnail_url, posts.created_at 
+	rows, err := m.DB.Query(`SELECT posts.id, posts.user_id, posts.slug, posts.title, posts.short_content, posts.thumbnail_url, posts.editor_type, posts.created_at 
 							FROM posts LEFT JOIN posts_topics
 							ON posts.id = posts_topics.post_id
 							WHERE posts_topics.topic_id = $1 
@@ -317,6 +321,7 @@ func (m *PostModel) GetPostsByTopic(topicSlug string, page int, take int) ([]Pos
 			&post.Title,
 			&post.ShortContent,
 			&post.ThumbnailUrl,
+			&post.EditorType,
 			&post.CreatedAt)
 		if err == nil {
 			var username string
