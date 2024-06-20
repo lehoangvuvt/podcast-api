@@ -127,12 +127,12 @@ func (m *PostModel) GetPostBySlug(slug string) (*PostDetails, error) {
 	queryBuilder := &queryHelpers.QueryBuilder{DB: m.DB}
 	post := &PostDetails{}
 	row := queryBuilder.
-		Select("id", "user_id", "slug", "title", "content", "editor_type", "created_at", "updated_at").
+		Select("id", "user_id", "slug", "title", "thumbnail_url", "content", "editor_type", "created_at", "updated_at").
 		FromTable("posts").
 		WhereColumn("slug").
 		Equal(slug).
 		GetOne()
-	err := row.Scan(&post.ID, &post.UserId, &post.Slug, &post.Title, &post.Content, &post.EditorType, &post.CreatedAt, &post.UpdatedAt)
+	err := row.Scan(&post.ID, &post.UserId, &post.Slug, &post.Title, &post.ThumbnailUrl, &post.Content, &post.EditorType, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
