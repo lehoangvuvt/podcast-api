@@ -75,7 +75,8 @@ func (m *PostModel) Insert(createPostInput *CreatePostInput, userId int) error {
 	uuid, _ := gonanoid.New()
 	slug := removePunctuation(strings.ToLower(fmt.Sprintf("%v-%v", strings.ReplaceAll(createPostInput.Title, " ", "-"),
 		strings.ReplaceAll(
-			strings.ReplaceAll(uuid, "-", ""), "_", ""))))
+			strings.ReplaceAll(
+				strings.ReplaceAll(uuid, "-", ""), "_", ""), "/", ""))))
 	_, err := m.DB.Exec(stmt,
 		userId,
 		slug,
